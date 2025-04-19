@@ -1,1 +1,40 @@
+const axios = require('axios');
+const { MessageType } = require('@whiskeysockets/baileys'); // adjust if needed
 
+module.exports = {
+
+  // .download command
+  download: async (client, m, text) => {
+    try {
+      if (!text) return m.reply('❌ Please provide a valid media URL to download!');
+
+      const url = text.trim();
+      if (!url.startsWith('http')) return m.reply('❌ Invalid URL format!');
+
+      // Example external API call (You can replace this with your API)
+      const api = `https://api.kingvonapi.site/download?url=${encodeURIComponent(url)}`;
+
+      let { data } = await axios.get(api);
+      
+      if (!data || !data.result) return m.reply('❌ Failed to fetch download link.');
+
+      const { title, thumbnail, media_url } = data.result;
+
+      await client.sendMessage(m.chat, { 
+        image: { url: thumbnail }, 
+        caption: `✅ Downloaded: *${title}*\nSending file...`
+      }, { quoted: m });
+
+      await client.sendMessage(m.chat, { 
+        document: { url: media_url }, 
+        mimetype: 'application/octet-stream', 
+        fileName: title || 'file'
+      }, { quoted: m });
+
+    } catch (err) {
+      console.error(err);
+      m.reply('❌ Error while downloading media.');
+    }
+  }
+
+};
