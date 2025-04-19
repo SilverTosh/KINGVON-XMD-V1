@@ -1,158 +1,163 @@
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
-const { Boom } = require('@hapi/boom');
+const { default: makeWASocket, useMultiFileAuthState, makeInMemoryStore } = require('@whiskeysockets/baileys');
 const pino = require('pino');
+const { Boom } = require('@hapi/boom');
 const fs = require('fs');
-const config = require('./config');
+const media = require('./lib/media');
+const { generateCode, expireCode } = require('./lib/code'); // dynamic code generator
 
-// Logger
-const logger = pino({ level: 'silent' });
-
-// Get a random emoji
-function getRandomEmoji() {
-    const emojis = ['🤕', '✅', '🚀', '🚁', '👾', '⚡', '🌟', '☠️'];
-    return emojis[Math.floor(Math.random() * emojis.length)];
-}
-
-// Generate random 8-character code
-function generateRandomCode(length = 8) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let code = '';
-    for (let i = 0; i < length; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return code;
-}
+const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) });
 
 async function startBot() {
-    const { state, saveCreds } = await useMultiFileAuthState('sessions');
+    const { state, saveCreds } = await useMultiFileAuthState('session');
 
     const sock = makeWASocket({
-        logger,
+        logger: pino({ level: 'silent' }),
         printQRInTerminal: true,
         auth: state,
-        browser: [config.BOT_NAME, 'Chrome', '5.0'],
+        browser: ["KINGVON-XMD", "Safari", "1.0.0"]
+    });
+
+    store.bind(sock.ev);
+
+    sock.ev.on('messages.upsert', async ({ messages }) => {
+        const m = messages[0];
+        if (!m.message) return;
+        if (m.key.fromMe) return;
+
+        const body = m.message.conversation || m.message.extendedTextMessage?.text || '';
+
+        const from = m.key.remoteJid;
+        const sender = m.key.participant || m.key.remoteJid;
+        const command = body.split(' ')[0].toLowerCase();
+
+        // Random emoji reaction
+        const randomEmojis = ["🤕", "✅", "🚀", "🚁", "👾", "⚡", "🌟", "☠️"];
+        const randomReact = randomEmojis[Math.floor(Math.random() * randomEmojis.length)];
+        sock.sendMessage(from, { react: { text: randomReact, key: m.key } });
+
+        // Handle Commands
+        switch (command) {
+
+            case '.menu':
+                const menuText = `
+╭═══『KINGVON-XMD BOT MENU』══⊷
+
+➥ Main Commands
+.menu - Show this menu
+.ping - Bot status
+.vv - Tag a view-once message
+.antidelete on/off - Recover deleted messages
+.bug - Open bug menu
+.sticker - Make sticker
+.download - Download media
+.autobio - Auto-update bio
+
+➥ Group Commands
+.opentime [time] - Schedule group open
+.closetime [time] - Schedule group close
+.promote @user - Make admin
+.demote @user - Remove admin
+.gclink - Get group link
+.antilink on/off - Anti-link group
+.remove +[code] - Kick numbers
+.terminate - Delete group (admin only)
+.del (tag msg) - Delete message
+.tag - Mention everyone
+.hidetag - Mention hidden
+
+➥ Fun Menu
+.vv - Tag view-once
+.sticker - Create sticker
+.uptime - Bot uptime
+.url - Generate picture link
+.vv2 - View-once unlock
+
+➥ Owner Settings (KINGVON)
+.block @user - Block user
+.unblock @user - Unblock user
+.code number - Generate pairing code
+
+➥ Special
+.danger - Force kick admins
+.grandson - Instantly kill group
+
+➥ Auto Features
+Auto emoji reaction: 🤕 ✅ 🚀 🚁 👾 ⚡ 🌟 ☠️
+                `;
+                await sock.sendMessage(from, { text: menuText }, { quoted: m });
+                break;
+
+            case '.ping':
+                await sock.sendMessage(from, { text: 'pong!' }, { quoted: m });
+                break;
+
+            case '.uptime':
+                const uptime = process.uptime();
+                await sock.sendMessage(from, { text: `Uptime: ${Math.floor(uptime / 60)} minutes` }, { quoted: m });
+                break;
+
+            case '.sticker':
+                const quoted = m.quoted ? m.quoted : m;
+                const mime = (quoted.msg || quoted).mimetype || '';
+
+                if (/image/.test(mime)) {
+                    const mediaPath = await media.saveMediaMessage(quoted, 'sticker.webp');
+                    await media.sendSticker(sock, from, mediaPath);
+                    fs.unlinkSync(mediaPath); // Clean up
+                } else {
+                    await sock.sendMessage(from, { text: 'Reply to an image to make sticker.' }, { quoted: m });
+                }
+                break;
+
+            case '.code':
+                if (sender.includes('254720326316')) { // Only KINGVON can use
+                    const targetNumber = body.split(' ')[1];
+                    if (!targetNumber) return sock.sendMessage(from, { text: 'Please specify a number.' }, { quoted: m });
+
+                    const generated = await generateCode(targetNumber);
+                    await sock.sendMessage(from, { text: `Here’s the pairing code for ${targetNumber}:\n\n${generated}\n\n(Expires in 3 minutes)` }, { quoted: m });
+
+                    expireCode(generated, 180000); // Expire in 3 mins
+                    setTimeout(async () => {
+                        await sock.sendMessage(from, { text: `The pairing code for ${targetNumber} has expired.` });
+                    }, 300000); // Autodelete 5 minutes
+                } else {
+                    await sock.sendMessage(from, { text: 'Only KINGVON can generate codes.' }, { quoted: m });
+                }
+                break;
+
+            case '.block':
+                if (sender.includes('254720326316')) {
+                    const mention = body.split(' ')[1];
+                    if (!mention) return sock.sendMessage(from, { text: 'Mention a user to block.' }, { quoted: m });
+                    await sock.updateBlockStatus(mention + '@s.whatsapp.net', 'block');
+                    await sock.sendMessage(from, { text: `Blocked ${mention}` }, { quoted: m });
+                }
+                break;
+
+            case '.unblock':
+                if (sender.includes('254720326316')) {
+                    const mention = body.split(' ')[1];
+                    if (!mention) return sock.sendMessage(from, { text: 'Mention a user to unblock.' }, { quoted: m });
+                    await sock.updateBlockStatus(mention + '@s.whatsapp.net', 'unblock');
+                    await sock.sendMessage(from, { text: `Unblocked ${mention}` }, { quoted: m });
+                }
+                break;
+
+            default:
+                break;
+        }
     });
 
     sock.ev.on('connection.update', (update) => {
         const { connection, lastDisconnect } = update;
         if (connection === 'close') {
-            const reason = new Boom(lastDisconnect?.error)?.output?.statusCode;
-            if (reason !== DisconnectReason.loggedOut) {
-                console.log("Reconnecting...");
+            if ((lastDisconnect.error = Boom)?.output?.statusCode !== DisconnectReason.loggedOut) {
                 startBot();
-            } else {
-                console.log("Session logged out.");
             }
         } else if (connection === 'open') {
-            console.log(`✅ ${config.BOT_NAME} connected!`);
+            console.log('BOT CONNECTED');
         }
-    });
-
-    sock.ev.on('messages.upsert', async ({ messages }) => {
-        const msg = messages[0];
-        if (!msg.message) return;
-
-        const from = msg.key.remoteJid;
-        const sender = msg.key.participant || msg.key.remoteJid;
-        const body = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
-
-        // Auto Random Reaction
-        if (body.startsWith(config.PREFIX)) {
-            if (config.AUTO_REACT.toLowerCase() === "yes") {
-                await sock.sendMessage(from, { react: { text: getRandomEmoji(), key: msg.key } });
-            }
-        }
-
-        // Command Handlers
-
-        // .menu
-        if (body === `${config.PREFIX}menu`) {
-            await sock.sendMessage(from, { text: `
-╭─「 KINGVON-XMD BOT MENU 」
-│
-├──「 Main Commands 」──
-│ ✪ .menu
-│ ✪ .ping
-│ ✪ .vv
-│ ✪ .antidelete on/off
-│ ✪ .bug
-│ ✪ .sticker
-│ ✪ .download
-│ ✪ .autobio
-│
-├──「 Group Commands 」──
-│ ✪ .opentime [time]
-│ ✪ .closetime [time]
-│ ✪ .promote @user
-│ ✪ .demote @user
-│ ✪ .gclink
-│ ✪ .antilink on/off
-│ ✪ .remove +[code]
-│ ✪ .terminate
-│ ✪ .del (tag)
-│ ✪ .tag
-│ ✪ .hidetag
-│
-├──「 Fun Menu 」──
-│ ✪ .vv
-│ ✪ .vv2
-│ ✪ .sticker
-│ ✪ .uptime
-│ ✪ .url
-│
-├──「 Owner Settings 」──
-│ ✪ .block
-│ ✪ .unblock
-│ ✪ .code (number)
-│
-├──「 VON SPECIAL 」──
-│ ✪ .danger
-│ ✪ .grandson
-│
-├──「 Support 」──
-│ ✪ Join Support Channel
-│
-├──「 Automatic Features 」──
-│ ✪ Bot randomly reacts to all commands with emojis.
-╰─────────────────⊷
-            ` });
-        }
-
-        // .ping
-        if (body === `${config.PREFIX}ping`) {
-            await sock.sendMessage(from, { text: '🏓 KINGVON-XMD alive!' });
-        }
-
-        // .code (dynamic pairing code for owner)
-        if (body.startsWith(`${config.PREFIX}code`)) {
-            if (!sender.includes(config.OWNER_NUMBER)) {
-                await sock.sendMessage(from, { text: "❌ Only KINGVON can generate codes!" });
-                return;
-            }
-            const number = body.split(' ')[1];
-            if (!number) {
-                await sock.sendMessage(from, { text: "⚠️ Usage: .code 2547xxxxxxxx" });
-                return;
-            }
-            const pairingCode = generateRandomCode();
-            const sentMessage = await sock.sendMessage(from, { text: `🔗 Pairing code for *${number}*:\n\n*${pairingCode}*\n\n⏳ (Expires in 3 minutes)` });
-
-            // Code expiry (after 3 minutes)
-            setTimeout(async () => {
-                console.log(`⌛ Code for ${number} expired.`);
-            }, 180000); // 3 minutes
-
-            // Message auto delete after 5 minutes
-            setTimeout(async () => {
-                try {
-                    await sock.sendMessage(from, { delete: sentMessage.key });
-                } catch (e) {
-                    console.error('❗ Failed to delete pairing message:', e);
-                }
-            }, 300000); // 5 minutes
-        }
-
-        // Add handling for .sticker, .vv, .vv2, .uptime, .url, .block, .unblock if needed
     });
 
     sock.ev.on('creds.update', saveCreds);
