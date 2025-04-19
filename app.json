@@ -1,0 +1,102 @@
+{
+  "name": "KINGVON-XMD",
+  "description": "KINGVON-XMD | WhatsApp Multi-Device Bot by KINGVON",
+  "keywords": ["whatsapp", "bot", "kingvon", "multi-device", "kingvon-xmd"],
+  "logo": "https://files.catbox.moe/4v6o48.jpg",
+  "repository": "https://github.com/KINGVON/KINGVON-XMD",
+  "success_url": "/",
+  "stack": "heroku-24",
+  "env": {
+    "SESSION_ID": {
+      "description": "Your WhatsApp Web Session ID",
+      "value": "",
+      "required": true
+    },
+    "OWNER_NUMBER": {
+      "description": "Your WhatsApp number with country code (example: 254720326316)",
+      "value": "254720326316",
+      "required": true
+    },
+    "OWNER_NAME": {
+      "description": "Your Name",
+      "value": "KINGVON",
+      "required": true
+    },
+    "BOT_NAME": {
+      "description": "Your Bot Name",
+      "value": "KINGVON-XMD",
+      "required": true
+    },
+    "PREFIX": {
+      "description": "Choose bot prefixes separated by commas (eg: .,!,#,$,%,+)",
+      "value": ".,!,#,$,&,+,*",
+      "required": true
+    },
+    "SUPPORT_LINK": {
+      "description": "WhatsApp Group/Support Link",
+      "value": "https://chat.whatsapp.com/XXXXXXXXXXXXX",
+      "required": false
+    },
+    "AUTO_LIKE_STATUS": {
+      "description": "React to statuses automatically (yes/no)",
+      "value": "yes",
+      "required": false
+    },
+    "AUTO_VIEW_STATUS": {
+      "description": "Auto view WhatsApp statuses (yes/no)",
+      "value": "yes",
+      "required": false
+    },
+    "AUTO_READ_MESSAGE": {
+      "description": "Auto mark incoming messages as read (yes/no)",
+      "value": "no",
+      "required": false
+    },
+    "AUTO_BIO": {
+      "description": "Auto update bot bio (yes/no)",
+      "value": "yes",
+      "required": false
+    },
+    "ANTI_LINK_GROUP": {
+      "description": "Block group invite links automatically (yes/no)",
+      "value": "yes",
+      "required": false
+    },
+    "ANTIDELETE": {
+      "description": "Recover deleted messages (yes/no)",
+      "value": "yes",
+      "required": false
+    },
+    "BLOCK_CALL": {
+      "description": "Auto block incoming calls (yes/no)",
+      "value": "yes",
+      "required": false
+    },
+    "FOOTER": {
+      "description": "Footer text in your bot messages",
+      "value": "KINGVON-XMD Bot",
+      "required": false
+    },
+    "THUMBNAIL": {
+      "description": "Thumbnail image URL for menu and previews",
+      "value": "https://i.ibb.co/XXxXXxXX/thumb.jpg",
+      "required": false
+    },
+    "CODE_PAIRING_EXPIRY": {
+      "description": "Minutes before generated pairing codes expire",
+      "value": "3",
+      "required": false
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}
