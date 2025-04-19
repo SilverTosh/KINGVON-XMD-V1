@@ -1,0 +1,25 @@
+{
+  "name": "kingvon-xmd",
+  "version": "1.0.0",
+  "description": "KINGVON-XMD WhatsApp Bot - Fast, Smart and Powerful!",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "whatsapp",
+    "bot",
+    "baileys",
+    "kingvon",
+    "xmd",
+    "whatsapp-bot"
+  ],
+  "author": "KINGVON",
+  "license": "MIT",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.2",
+    "pino": "^8.14.1",
+    "fs-extra": "^11.1.1",
+    "@hapi/boom": "^10.0.1"
+  }
+}
