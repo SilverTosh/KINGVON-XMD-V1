@@ -1,57 +1,62 @@
-const { getBuffer } = require('../lib/myfunc');
+const { sticker } = require('../lib/sticker');
+const { fetchJson } = require('../lib/fetcher');
 const axios = require('axios');
-const moment = require('moment');
+const { exec } = require('child_process');
 
 module.exports = {
-  
-  // Tag view-once message
-  vv: async (client, m) => {
-    if (!m.quoted) return m.reply('Reply to a view-once message.');
-    if (!m.quoted.viewOnce) return m.reply('This is not a view-once message.');
-    let msg = m.quoted.message;
-    client.sendMessage(m.chat, msg, { quoted: m });
-  },
 
-  // Another method for view-once
-  vv2: async (client, m) => {
-    if (!m.quoted) return m.reply('Reply to a view-once message.');
-    if (!m.quoted.viewOnce) return m.reply('This is not a view-once message.');
-    let msg = m.quoted.message;
-    client.sendMessage(m.chat, msg);
-  },
-
-  // Sticker maker
-  sticker: async (client, m, args) => {
-    const mime = (m.quoted ? m.quoted : m).mimetype || '';
-    if (/image|video/.test(mime)) {
-      let media = await m.quoted.download();
-      client.sendImageAsSticker(m.chat, media, m, { packname: "KINGVON-XMD", author: "KINGVON" });
-    } else {
-      m.reply('Reply to an image or short video.');
-    }
-  },
-
-  // Uptime command
-  uptime: async (client, m) => {
-    let uptime = process.uptime() * 1000;
-    let time = moment.duration(uptime).humanize();
-    m.reply(`🤖 Bot uptime: ${time}`);
-  },
-
-  // Generate image url
-  url: async (client, m) => {
-    const mime = (m.quoted ? m.quoted : m).mimetype || '';
-    if (!/image/.test(mime)) return m.reply('Reply to an image to get its URL.');
+  // Make sticker from image
+  sticker: async (client, m) => {
+    if (!m.quoted) return m.reply('Reply to an image/video to make a sticker!');
+    let mime = (m.quoted.msg || m.quoted).mimetype || '';
+    if (!/image|video/.test(mime)) return m.reply('Only images or short videos are allowed.');
     let media = await m.quoted.download();
-    let buffer = await getBuffer(media);
-    let res = await axios.post('https://api.imgbb.com/1/upload?key=YOUR_IMGBB_API_KEY', {
-      image: buffer.toString('base64')
+    let stickerData = await sticker(media, { packname: "KINGVON-XMD", author: "Sticker Maker" });
+    client.sendMessage(m.chat, { sticker: stickerData }, { quoted: m });
+  },
+
+  // URL to media download
+  url: async (client, m, args) => {
+    if (!args[0]) return m.reply('Send a valid URL!');
+    let response = await fetchJson(`https://api.kingvonxmd.xyz/download?url=${args[0]}`);
+    if (!response.status) return m.reply('Failed to download.');
+    client.sendMessage(m.chat, { video: { url: response.result.url } }, { quoted: m });
+  },
+
+  // Text-to-voice
+  vv: async (client, m, args) => {
+    if (!args[0]) return m.reply('Send a text to convert to voice.');
+    let text = args.join(' ');
+    exec(`gtts-cli "${text}" --output temp.mp3`, async (err) => {
+      if (err) return m.reply('Error.');
+      client.sendMessage(m.chat, { audio: { url: './temp.mp3' }, mimetype: 'audio/mp4', ptt: true }, { quoted: m });
     });
-    if (res.data && res.data.data && res.data.data.url) {
-      m.reply(`🔗 Image URL:\n${res.data.data.url}`);
-    } else {
-      m.reply('❌ Failed to generate URL.');
-    }
+  },
+
+  // Another text-to-voice with another style
+  vv2: async (client, m, args) => {
+    if (!args[0]) return m.reply('Send a text.');
+    let text = args.join(' ');
+    exec(`say "${text}" -o temp.aiff && ffmpeg -i temp.aiff temp.mp3`, async (err) => {
+      if (err) return m.reply('Error.');
+      client.sendMessage(m.chat, { audio: { url: './temp.mp3' }, mimetype: 'audio/mp4', ptt: true }, { quoted: m });
+    });
+  },
+
+  // Bot Uptime
+  uptime: async (client, m) => {
+    let uptime = process.uptime();
+    let hours = Math.floor(uptime / 3600);
+    let minutes = Math.floor((uptime % 3600) / 60);
+    let seconds = Math.floor(uptime % 60);
+    m.reply(`🤖 Bot Uptime: ${hours}h ${minutes}m ${seconds}s`);
+  },
+
+  // Auto Reaction to any command
+  autoreact: async (client, m) => {
+    const emojis = ['✅','🚀','👑','🔥','⚡','🌟'];
+    let randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+    client.sendMessage(m.chat, { react: { text: randomEmoji, key: m.key } });
   }
 
 };
