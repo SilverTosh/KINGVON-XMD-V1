@@ -3,5 +3,6 @@
 <h1 align="center">I CRIED REAL TEARS WHEN THEY LOCKED UP🔒 𝕐𝕆𝕌ℕ𝔾𝕋ℍ𝕌𝔾 I PRAY FOR BETTER DAYS BUT I SWEAR THEY NEVER COME,MY BROTHER ON THE GRAVE 🕊️🕊️ RIP 🕊️🕊️🅺🅸🅽🅶🆅🅾🅽...WE SLIDING EVERYDAY UNTILL WE PUT THEM N****S ON THE BLUNT..</h1>
 <p align="center">
 
-  <a href='https://postimg.cc/N5wdHd5K' target='_blank'><img src='https://i.postimg.cc/N5wdHd5K/KINGVON-XMD-DP-1.png' border='0' alt='KINGVON-XMD-DP-1'<h1 src="https://readme-Typing-svg.demolab.com?font=Black+Ops+One&size=50&pause=1000&color=1BAFBAFF&center=true&width=910&height=100&lines=KINGVON+MD+BOT+BEST+WA+BOT;CREATED+BY+KINGVON+TECH;BOT+DATE+??.04.2025" alt="Typing SVG" /></a>
+  <a href='https://postimg.cc/N5wdHd5K' target='_blank'><img src='https://i.postimg.cc/N5wdHd5K/KINGVON-XMD-DP-1.png' border='0' alt='KINGVON-XMD-DP-1'</h1>
+  <h1 src="https://readme-Typing-svg.demolab.com?font=Black+Ops+One&size=50&pause=1000&color=1BAFBAFF&center=true&width=910&height=100&lines=KINGVON+MD+BOT+BEST+WA+BOT;CREATED+BY+KINGVON+TECH;BOT+DATE+??.04.2025" alt="Typing SVG" /></a>
   </p>
