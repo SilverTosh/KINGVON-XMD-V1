@@ -1,3 +1,12 @@
+// UPTIME ROBOT KEEP-ALIVE SERVER
+const express = require('express');
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => res.send('Bot is Running - KINGVON-XMD-V1'));
+app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+
+// MAIN BOT CODE STARTS BELOW
 const { default: makeWASocket, useMultiFileAuthState, makeInMemoryStore, DisconnectReason } = require('@whiskeysockets/baileys');
 const pino = require('pino');
 const { Boom } = require('@hapi/boom');
@@ -37,7 +46,6 @@ async function startBot() {
 
         // Handle Commands
         switch (command) {
-
             case '.menu':
                 const menuText = `
 ╭═══『KINGVON-XMD BOT MENU』══⊷
