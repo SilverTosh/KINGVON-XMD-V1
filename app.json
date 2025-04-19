@@ -3,7 +3,7 @@
   "description": "KINGVON-XMD | WhatsApp Multi-Device Bot by KINGVON",
   "keywords": ["whatsapp", "bot", "kingvon", "multi-device", "kingvon-xmd"],
   "logo": "https://files.catbox.moe/4v6o48.jpg",
-  "repository": "https://github.com/KINGVON/KINGVON-XMD",
+  "repository": "https://github.com/SilverTosh/V1.git",
   "success_url": "/",
   "stack": "heroku-24",
   "env": {
@@ -33,8 +33,8 @@
       "required": true
     },
     "SUPPORT_LINK": {
-      "description": "WhatsApp Group/Support Link",
-      "value": "https://chat.whatsapp.com/XXXXXXXXXXXXX",
+      "description": "WhatsApp support link",
+      "value": "https://whatsapp.com/channel/0029Vb5tbcZEKyZEHbicrV1y",
       "required": false
     },
     "AUTO_LIKE_STATUS": {
@@ -48,7 +48,7 @@
       "required": false
     },
     "AUTO_READ_MESSAGE": {
-      "description": "Auto mark incoming messages as read (yes/no)",
+      "description": "Autoread incoming messages (yes/no)",
       "value": "no",
       "required": false
     },
@@ -67,19 +67,9 @@
       "value": "yes",
       "required": false
     },
-    "BLOCK_CALL": {
-      "description": "Auto block incoming calls (yes/no)",
-      "value": "yes",
-      "required": false
-    },
-    "FOOTER": {
-      "description": "Footer text in your bot messages",
-      "value": "KINGVON-XMD Bot",
-      "required": false
-    },
     "THUMBNAIL": {
       "description": "Thumbnail image URL for menu and previews",
-      "value": "https://i.ibb.co/XXxXXxXX/thumb.jpg",
+      "value": "https://files.catbox.moe/4v6o48.jpg",
       "required": false
     },
     "CODE_PAIRING_EXPIRY": {
