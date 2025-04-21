@@ -10,6 +10,6 @@
 
 <p align="center">
   <a href="https://files.catbox.moe/mzhbx7.mp4" target="_blank">
-    <img src="https://imgur.com/a/jufdfZl" alt="Watch KINGVON-XMD Video" width="800" />
+    <img src="https://files.catbox.moe/mtvyj5.jpg" alt="Watch KINGVON-XMD Video" width="800" />
   </a>
 </p>
